@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Check if the user is an admin by looking for their email in the admins collection
+    function isAdmin() {
+      return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
+    }
+
+    match /admins/{email} {
+      allow read: if request.auth != null && request.auth.token.email == email;
+      // In production, no one can write to admins via client SDK, must be done in Firebase console.
+      allow write: if false; 
+    }
+
+    match /tournaments/{tournamentId} {
+      allow read: if true; // Public view
+      allow write: if isAdmin();
+      
+      match /teams/{teamId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+      
+      match /matches/{matchId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+    }
+  }
+}
