@@ -163,25 +163,29 @@ export default function ManageTournament() {
     const file = e.target.files?.[0];
     if (!file || !id) return;
     
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image is too large! Please select an image under 5MB.");
+    // Check file size (max 800KB for Firestore base64)
+    if (file.size > 800 * 1024) {
+      alert("Image is too large to save directly to the database! Please select an image under 800KB.");
+      e.target.value = '';
       return;
     }
 
     setIsUploading(true);
 
     try {
-      const storageRef = ref(storage, `banners/${id}_${file.name}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-      await handleUpdateTournament('bannerUrl', url);
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        await handleUpdateTournament('bannerUrl', base64String);
+        setIsUploading(false);
+        e.target.value = ''; // Reset input
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
       console.error(err);
-      alert("Upload failed! 1) Make sure Firebase Storage is enabled in your Console. 2) Make sure your Rules are set to Test Mode.");
-    } finally {
+      alert("Upload failed!");
       setIsUploading(false);
-      e.target.value = ''; // Reset input
+      e.target.value = '';
     }
   };
 
