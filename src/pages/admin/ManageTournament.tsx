@@ -21,15 +21,17 @@ export default function ManageTournament() {
   const fetchData = async () => {
     if (!id) return;
     try {
-      const docSnap = await getDoc(doc(db, 'tournaments', id));
+      const [docSnap, teamsSnap, matchesSnap] = await Promise.all([
+        getDoc(doc(db, 'tournaments', id)),
+        getDocs(collection(db, `tournaments/${id}/teams`)),
+        getDocs(collection(db, `tournaments/${id}/matches`))
+      ]);
+
       if (docSnap.exists()) {
         setTournament({ id: docSnap.id, ...docSnap.data() } as Tournament);
       }
 
-      const teamsSnap = await getDocs(collection(db, `tournaments/${id}/teams`));
       setTeams(teamsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Team)));
-
-      const matchesSnap = await getDocs(collection(db, `tournaments/${id}/matches`));
       setMatches(matchesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Match)).sort((a, b) => a.date - b.date));
     } catch (err) {
       console.error(err);

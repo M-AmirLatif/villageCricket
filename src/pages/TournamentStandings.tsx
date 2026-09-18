@@ -17,12 +17,16 @@ export default function TournamentStandings() {
     async function fetchData() {
       if (!id) return;
       try {
-        const tDoc = await getDoc(doc(db, 'tournaments', id));
+        const [tDoc, teamsSnapshot, matchesSnapshot] = await Promise.all([
+          getDoc(doc(db, 'tournaments', id)),
+          getDocs(collection(db, `tournaments/${id}/teams`)),
+          getDocs(collection(db, `tournaments/${id}/matches`))
+        ]);
+
         if (tDoc.exists()) {
           setTournament({ id: tDoc.id, ...tDoc.data() } as Tournament);
         }
 
-        const teamsSnapshot = await getDocs(collection(db, `tournaments/${id}/teams`));
         const teamsData = teamsSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Team));
         
         // Compute rank on the frontend dynamically by sorting
@@ -35,7 +39,6 @@ export default function TournamentStandings() {
         
         setTeams(teamsData);
 
-        const matchesSnapshot = await getDocs(query(collection(db, `tournaments/${id}/matches`)));
         const matchesData = matchesSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Match));
         // Sort matches by date
         matchesData.sort((a, b) => a.date - b.date);
