@@ -196,8 +196,9 @@ export default function ManageTournament() {
     }
   };
 
-  const handleRecalculateStandings = async () => {
-    if (!id || !window.confirm("This will overwrite all team stats (P, W, L, D, PTS, NRR) based on the match scores below. Are you sure?")) return;
+  const handleRecalculateStandings = async (silent = false, matchesOverride?: Match[]) => {
+    if (!id) return;
+    if (!silent && !window.confirm("This will overwrite all team stats (P, W, L, D, PTS, NRR) based on the match scores below. Are you sure?")) return;
     
     try {
       const teamStats: Record<string, { matchesPlayed: number, wins: number, losses: number, draws: number, points: number, runsScored: number, oversFaced: number, runsConceded: number, oversBowled: number }> = {};
@@ -219,7 +220,9 @@ export default function ManageTournament() {
         return parseInt(scoreStr.split('/')[0]) || 0;
       };
 
-      matches.forEach(m => {
+      const matchesToUse = matchesOverride || matches;
+
+      matchesToUse.forEach(m => {
         if (m.result === 'upcoming') return;
         
         const sA = teamStats[m.teamAId];
@@ -268,11 +271,37 @@ export default function ManageTournament() {
         });
       }
 
-      alert("Standings successfully recalculated!");
+      if (!silent) alert("Standings successfully recalculated!");
       fetchData();
     } catch (err) {
       console.error(err);
-      alert("Failed to recalculate standings");
+      if (!silent) alert("Failed to recalculate standings");
+    }
+  };
+
+  const handleResetMatch = async (match: Match) => {
+    if (!id) return;
+    if (!window.confirm("Are you sure you want to completely clear this match? Scores and results will be reset to zero, and the Points Table will instantly recalculate to remove this match's points.")) return;
+
+    try {
+      await updateDoc(doc(db, `tournaments/${id}/matches`, match.id), {
+        result: 'upcoming',
+        teamAScore: '',
+        teamAOvers: '',
+        teamBScore: '',
+        teamBOvers: ''
+      });
+
+      const updatedMatches = matches.map(m => {
+        if (m.id === match.id) {
+          return { ...m, result: 'upcoming', teamAScore: '', teamAOvers: '', teamBScore: '', teamBOvers: '' } as Match;
+        }
+        return m;
+      });
+
+      await handleRecalculateStandings(true, updatedMatches);
+    } catch (err) {
+      alert("Failed to reset match");
     }
   };
 
@@ -441,14 +470,22 @@ export default function ManageTournament() {
             const tB = teams.find(t => t.id === m.teamBId)?.teamName || 'Unknown Team';
             
             return (
-              <div key={m.id} className="border-2 border-gray-100 rounded-lg p-4 sm:p-5 hover:border-cricket-teal transition bg-gray-50/50 relative">
+              <div key={m.id} className="border-2 border-gray-100 rounded-lg p-4 sm:p-5 hover:border-cricket-teal transition bg-gray-50/50 relative pt-10 sm:pt-5">
                 
-                <button 
-                  onClick={() => handleDeleteMatch(m.id)}
-                  className="absolute top-2 right-2 text-xs text-red-500 hover:text-white hover:bg-red-500 px-2 py-1 rounded transition"
-                >
-                  Remove Match
-                </button>
+                <div className="absolute top-2 right-2 flex gap-2">
+                  <button 
+                    onClick={() => handleResetMatch(m)}
+                    className="text-xs text-orange-500 hover:text-white hover:bg-orange-500 px-2 py-1 rounded transition border border-orange-200 hover:border-orange-500 font-bold"
+                  >
+                    Reset Match
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteMatch(m.id)}
+                    className="text-xs text-red-500 hover:text-white hover:bg-red-500 px-2 py-1 rounded transition border border-red-200 hover:border-red-500 font-bold"
+                  >
+                    Remove Match
+                  </button>
+                </div>
 
                 <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 border-b border-gray-200 pb-4 mb-4">
                   <div>
