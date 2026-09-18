@@ -146,6 +146,86 @@ export default function ManageTournament() {
     }
   };
 
+  const handleRecalculateStandings = async () => {
+    if (!id || !window.confirm("This will overwrite all team stats (P, W, L, D, PTS, NRR) based on the match scores below. Are you sure?")) return;
+    
+    try {
+      const teamStats: Record<string, { matchesPlayed: number, wins: number, losses: number, draws: number, points: number, runsScored: number, oversFaced: number, runsConceded: number, oversBowled: number }> = {};
+      
+      teams.forEach(t => {
+        teamStats[t.id] = { matchesPlayed: 0, wins: 0, losses: 0, draws: 0, points: 0, runsScored: 0, oversFaced: 0, runsConceded: 0, oversBowled: 0 };
+      });
+
+      const parseOvers = (oversStr: string) => {
+        if (!oversStr) return 0;
+        const parts = oversStr.toString().split('.');
+        const overs = parseInt(parts[0]) || 0;
+        const balls = parseInt(parts[1]) || 0;
+        return overs + (balls / 6);
+      };
+
+      const parseRuns = (scoreStr: string) => {
+        if (!scoreStr) return 0;
+        return parseInt(scoreStr.split('/')[0]) || 0;
+      };
+
+      matches.forEach(m => {
+        if (m.result === 'upcoming') return;
+        
+        const sA = teamStats[m.teamAId];
+        const sB = teamStats[m.teamBId];
+        if (!sA || !sB) return;
+
+        sA.matchesPlayed++;
+        sB.matchesPlayed++;
+
+        if (m.result === 'teamA') { sA.wins++; sB.losses++; sA.points += 2; }
+        else if (m.result === 'teamB') { sB.wins++; sA.losses++; sB.points += 2; }
+        else if (m.result === 'tie' || m.result === 'noResult') { 
+          sA.draws++; sB.draws++; sA.points += 1; sB.points += 1; 
+        }
+
+        const runsA = parseRuns(m.teamAScore || '0');
+        const oversA = parseOvers(m.teamAOvers || '0');
+        const runsB = parseRuns(m.teamBScore || '0');
+        const oversB = parseOvers(m.teamBOvers || '0');
+
+        sA.runsScored += runsA;
+        sA.oversFaced += oversA;
+        sA.runsConceded += runsB;
+        sA.oversBowled += oversB;
+
+        sB.runsScored += runsB;
+        sB.oversFaced += oversB;
+        sB.runsConceded += runsA;
+        sB.oversBowled += oversA;
+      });
+
+      for (const t of teams) {
+        const stats = teamStats[t.id];
+        let nrr = 0;
+        if (stats.oversFaced > 0 && stats.oversBowled > 0) {
+          nrr = (stats.runsScored / stats.oversFaced) - (stats.runsConceded / stats.oversBowled);
+        }
+        
+        await updateDoc(doc(db, `tournaments/${id}/teams`, t.id), {
+          matchesPlayed: stats.matchesPlayed,
+          wins: stats.wins,
+          losses: stats.losses,
+          draws: stats.draws,
+          points: stats.points,
+          netRunRate: isNaN(nrr) ? 0 : parseFloat(nrr.toFixed(3))
+        });
+      }
+
+      alert("Standings successfully recalculated!");
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to recalculate standings");
+    }
+  };
+
   if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
@@ -180,9 +260,17 @@ export default function ManageTournament() {
 
       {/* Manage Teams Section */}
       <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
-        <h2 className="text-lg font-bold mb-2 text-cricket-navy uppercase">Team Stats & Points Table</h2>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+          <h2 className="text-lg font-bold text-cricket-navy uppercase">Team Stats & Points Table</h2>
+          <button 
+            onClick={handleRecalculateStandings}
+            className="bg-yellow-400 hover:bg-yellow-500 text-cricket-navy font-bold px-4 py-2 rounded shadow-sm text-sm flex items-center gap-2 transition"
+          >
+            ⚡ Auto-Calculate from Matches
+          </button>
+        </div>
         <p className="text-xs sm:text-sm text-gray-500 mb-4 bg-gray-50 p-2 rounded border border-gray-100">
-          💡 <strong>Tip:</strong> Edit points, W/L/D, and NRR directly in the boxes below. They auto-save instantly.
+          💡 <strong>Tip:</strong> Click the yellow Auto-Calculate button to compute everything from the match scores automatically, or edit manually. Note: For accurate NRR, make sure to enter overs like '19.4' correctly.
         </p>
         
         <div className="overflow-x-auto -mx-4 sm:mx-0">
