@@ -175,10 +175,16 @@ export default function ManageTournament() {
     try {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const base64String = reader.result as string;
-        await handleUpdateTournament('bannerUrl', base64String);
-        setIsUploading(false);
-        e.target.value = ''; // Reset input
+        try {
+          const base64String = reader.result as string;
+          await handleUpdateTournament('bannerUrl', base64String);
+        } catch(err) {
+          console.error("Upload error:", err);
+          alert("Error saving image to database.");
+        } finally {
+          setIsUploading(false);
+          e.target.value = ''; // Reset input
+        }
       };
       reader.readAsDataURL(file);
     } catch (err) {
