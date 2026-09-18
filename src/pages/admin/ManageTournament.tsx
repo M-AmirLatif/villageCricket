@@ -275,7 +275,7 @@ export default function ManageTournament() {
         
         <div className="overflow-x-auto -mx-4 sm:mx-0">
           <div className="inline-block min-w-full align-middle px-4 sm:px-0">
-            <table className="w-full text-left border-collapse min-w-[700px]">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-gradient-to-r from-cricket-navy to-cricket-teal text-white">
                   <th className="p-3 text-sm font-black rounded-tl-lg">Team Name</th>

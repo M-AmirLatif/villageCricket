@@ -101,11 +101,11 @@ export default function TournamentStandings() {
       <div className="p-0">
         {activeTab === 'standings' && (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px] sm:min-w-full">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-gradient-to-r from-cricket-teal to-emerald-600 text-white border-b-2 border-emerald-700 shadow-sm">
                   <th className="py-3 px-3 sm:px-4 font-black text-sm rounded-tl-lg">#</th>
-                  <th className="py-3 px-3 sm:px-4 font-black text-sm min-w-[120px]">TEAM</th>
+                  <th className="py-3 px-3 sm:px-4 font-black text-sm">TEAM</th>
                   <th className="py-3 px-3 sm:px-4 font-black text-sm text-center w-12 sm:w-16">P</th>
                   <th className="py-3 px-3 sm:px-4 font-black text-sm text-center w-12 sm:w-16">W</th>
                   <th className="py-3 px-3 sm:px-4 font-black text-sm text-center w-12 sm:w-16">L</th>
