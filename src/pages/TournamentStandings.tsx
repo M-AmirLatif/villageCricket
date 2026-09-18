@@ -101,17 +101,17 @@ export default function TournamentStandings() {
       <div className="p-0">
         {activeTab === 'standings' && (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[600px] sm:min-w-full">
               <thead>
                 <tr className="bg-gradient-to-r from-cricket-teal to-emerald-600 text-white border-b-2 border-emerald-700 shadow-sm">
-                  <th className="py-3 px-4 font-black text-sm rounded-tl-lg">#</th>
-                  <th className="py-3 px-4 font-black text-sm w-full">TEAM</th>
-                  <th className="py-3 px-2 font-black text-sm text-center">P</th>
-                  <th className="py-3 px-2 font-black text-sm text-center">W</th>
-                  <th className="py-3 px-2 font-black text-sm text-center">L</th>
-                  <th className="py-3 px-2 font-black text-sm text-center">D</th>
-                  <th className="py-3 px-3 font-black text-sm text-center text-yellow-300 text-lg shadow-text">PTS</th>
-                  <th className="py-3 px-4 font-black text-sm text-right rounded-tr-lg">NRR</th>
+                  <th className="py-3 px-3 sm:px-4 font-black text-sm rounded-tl-lg">#</th>
+                  <th className="py-3 px-3 sm:px-4 font-black text-sm w-full">TEAM</th>
+                  <th className="py-3 px-3 sm:px-4 font-black text-sm text-center w-12 sm:w-16">P</th>
+                  <th className="py-3 px-3 sm:px-4 font-black text-sm text-center w-12 sm:w-16">W</th>
+                  <th className="py-3 px-3 sm:px-4 font-black text-sm text-center w-12 sm:w-16">L</th>
+                  <th className="py-3 px-3 sm:px-4 font-black text-sm text-center w-12 sm:w-16">D</th>
+                  <th className="py-3 px-4 sm:px-5 font-black text-sm text-center text-yellow-300 text-lg shadow-text w-16 sm:w-20">PTS</th>
+                  <th className="py-3 px-4 sm:px-6 font-black text-sm text-right rounded-tr-lg w-20 sm:w-24">NRR</th>
                 </tr>
               </thead>
               <tbody>
@@ -122,12 +122,12 @@ export default function TournamentStandings() {
                 ) : (
                   teams.map((team, index) => (
                     <tr key={team.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3 sm:px-4">
                         <div className="w-6 h-6 rounded-full bg-cricket-teal text-white flex items-center justify-center text-xs font-bold">
                           {index + 1}
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3 sm:px-4">
                         <div className="flex items-center gap-3">
                           {team.logoUrl && (
                             <img src={team.logoUrl} alt={team.teamName} className="w-8 h-8 rounded-full object-cover border border-gray-200" />
@@ -135,12 +135,12 @@ export default function TournamentStandings() {
                           <span className="font-bold text-gray-800 text-sm sm:text-base">{team.teamName}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-2 text-center text-gray-600 font-medium">{team.matchesPlayed}</td>
-                      <td className="py-3 px-2 text-center text-gray-600 font-medium">{team.wins}</td>
-                      <td className="py-3 px-2 text-center text-gray-600 font-medium">{team.losses}</td>
-                      <td className="py-3 px-2 text-center text-gray-600 font-medium">{team.draws}</td>
-                      <td className="py-3 px-3 text-center text-cricket-teal font-bold text-lg">{team.points}</td>
-                      <td className="py-3 px-4 text-right text-gray-700 font-medium font-mono">
+                      <td className="py-3 px-3 sm:px-4 text-center text-gray-600 font-medium">{team.matchesPlayed}</td>
+                      <td className="py-3 px-3 sm:px-4 text-center text-gray-600 font-medium">{team.wins}</td>
+                      <td className="py-3 px-3 sm:px-4 text-center text-gray-600 font-medium">{team.losses}</td>
+                      <td className="py-3 px-3 sm:px-4 text-center text-gray-600 font-medium">{team.draws}</td>
+                      <td className="py-3 px-4 sm:px-5 text-center text-cricket-teal font-bold text-lg">{team.points}</td>
+                      <td className="py-3 px-4 sm:px-6 text-right text-gray-700 font-medium font-mono">
                         {team.netRunRate > 0 ? '+' : ''}{team.netRunRate.toFixed(3)}
                       </td>
                     </tr>
