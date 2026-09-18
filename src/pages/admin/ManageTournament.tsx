@@ -163,29 +163,47 @@ export default function ManageTournament() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !id) return;
-    
-    // Check file size (max 800KB for Firestore base64)
-    if (file.size > 800 * 1024) {
-      alert("Image is too large to save directly to the database! Please select an image under 800KB.");
-      e.target.value = '';
-      return;
-    }
 
     setIsUploading(true);
 
     try {
       const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const base64String = reader.result as string;
-          await handleUpdateTournament('bannerUrl', base64String);
-        } catch(err) {
-          console.error("Upload error:", err);
-          alert("Error saving image to database.");
-        } finally {
-          setIsUploading(false);
-          e.target.value = ''; // Reset input
-        }
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = async () => {
+          // Compress the image to max 800px width/height to save DB space
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const MAX_SIZE = 800;
+
+          if (width > height && width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          } else if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Export as highly compressed JPEG (quality 0.6)
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+          
+          try {
+            await handleUpdateTournament('bannerUrl', compressedBase64);
+          } catch(err) {
+            console.error("Upload error:", err);
+            alert("Error saving image to database.");
+          } finally {
+            setIsUploading(false);
+            e.target.value = ''; // Reset input
+          }
+        };
+        img.src = event.target?.result as string;
       };
       reader.readAsDataURL(file);
     } catch (err) {
