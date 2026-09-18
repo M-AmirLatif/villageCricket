@@ -364,7 +364,7 @@ export default function ManageTournament() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
           <h2 className="text-lg font-bold text-cricket-navy uppercase">Team Stats & Points Table</h2>
           <button 
-            onClick={handleRecalculateStandings}
+            onClick={() => handleRecalculateStandings()}
             className="bg-yellow-400 hover:bg-yellow-500 text-cricket-navy font-bold px-4 py-2 rounded shadow-sm text-sm flex items-center gap-2 transition"
           >
             ⚡ Auto-Calculate from Matches
