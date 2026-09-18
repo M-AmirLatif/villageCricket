@@ -82,16 +82,16 @@ export default function TournamentStandings() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 bg-gray-50">
+      <div className="flex gap-3 p-3 sm:p-4 bg-gray-100 border-b border-gray-200">
         <button 
           onClick={() => setActiveTab('standings')}
-          className={`flex-1 py-4 text-center font-bold text-sm uppercase tracking-wider ${activeTab === 'standings' ? 'bg-cricket-teal text-white' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
+          className={`flex-1 py-3 px-4 text-center font-black text-sm sm:text-base uppercase tracking-wider rounded-lg transition-all shadow-sm ${activeTab === 'standings' ? 'bg-cricket-teal text-white ring-2 ring-offset-2 ring-cricket-teal' : 'bg-white text-gray-500 hover:text-gray-800 hover:bg-gray-50 border border-gray-200'}`}
         >
           Points Table
         </button>
         <button 
           onClick={() => setActiveTab('fixtures')}
-          className={`flex-1 py-4 text-center font-bold text-sm uppercase tracking-wider ${activeTab === 'fixtures' ? 'bg-cricket-teal text-white' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
+          className={`flex-1 py-3 px-4 text-center font-black text-sm sm:text-base uppercase tracking-wider rounded-lg transition-all shadow-sm ${activeTab === 'fixtures' ? 'bg-cricket-teal text-white ring-2 ring-offset-2 ring-cricket-teal' : 'bg-white text-gray-500 hover:text-gray-800 hover:bg-gray-50 border border-gray-200'}`}
         >
           Matches & Results
         </button>
@@ -120,10 +120,27 @@ export default function TournamentStandings() {
                     <td colSpan={8} className="py-12 text-center text-gray-500 font-medium bg-gray-50">No teams have been added yet.</td>
                   </tr>
                 ) : (
-                  teams.map((team, index) => (
-                    <tr key={team.id} className="even:bg-emerald-50/60 odd:bg-white hover:bg-emerald-100 transition-colors divide-x divide-gray-100 group">
-                      <td className="py-3 px-3 sm:px-4 border-l-4 border-l-transparent group-hover:border-l-cricket-teal">
-                        <div className="w-6 h-6 rounded-full bg-cricket-navy text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                  teams.map((team, index) => {
+                    let rowBg = "even:bg-gray-50 odd:bg-white hover:bg-gray-100";
+                    let badgeColor = "bg-cricket-navy text-white";
+                    
+                    if (index < 2) {
+                      // Top 2 Teams (Qualifiers)
+                      rowBg = "bg-green-100/40 hover:bg-green-100/70 border-l-4 border-l-green-500";
+                      badgeColor = "bg-green-600 text-white shadow-md ring-2 ring-green-300";
+                    } else if (index >= teams.length - 2 && teams.length > 4) {
+                      // Bottom 2 Teams (Eliminated)
+                      rowBg = "bg-red-50/50 hover:bg-red-100/60 border-l-4 border-l-red-400";
+                      badgeColor = "bg-red-500 text-white shadow-md ring-2 ring-red-200";
+                    } else {
+                      // Middle Teams
+                      rowBg += " border-l-4 border-l-transparent group-hover:border-l-gray-300";
+                    }
+
+                    return (
+                    <tr key={team.id} className={`${rowBg} transition-colors divide-x divide-gray-100 group`}>
+                      <td className="py-3 px-3 sm:px-4">
+                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-black ${badgeColor}`}>
                           {index + 1}
                         </div>
                       </td>
@@ -144,7 +161,8 @@ export default function TournamentStandings() {
                         {team.netRunRate > 0 ? '+' : ''}{team.netRunRate.toFixed(3)}
                       </td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>

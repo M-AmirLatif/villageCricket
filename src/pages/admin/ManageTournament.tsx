@@ -146,6 +146,16 @@ export default function ManageTournament() {
     }
   };
 
+  const handleUpdateTournament = async (field: string, value: string) => {
+    if (!id) return;
+    try {
+      await updateDoc(doc(db, 'tournaments', id), { [field]: value });
+      fetchData();
+    } catch (err) {
+      alert("Failed to update tournament");
+    }
+  };
+
   const handleRecalculateStandings = async () => {
     if (!id || !window.confirm("This will overwrite all team stats (P, W, L, D, PTS, NRR) based on the match scores below. Are you sure?")) return;
     
@@ -238,6 +248,23 @@ export default function ManageTournament() {
         <button onClick={handleDeleteTournament} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-bold shadow-sm transition">
           Delete Tournament
         </button>
+      </div>
+
+      {/* Tournament Settings */}
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200 border-l-4 border-l-cricket-navy">
+        <h2 className="text-lg font-bold mb-2 text-cricket-navy uppercase">Tournament Picture</h2>
+        <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <input 
+            type="text" 
+            placeholder="Paste Image URL here (e.g. from Imgur or Facebook)" 
+            value={tournament?.bannerUrl || ''}
+            onChange={(e) => handleUpdateTournament('bannerUrl', e.target.value)}
+            className="flex-1 w-full px-4 py-2 border border-gray-300 rounded text-sm"
+          />
+          {tournament?.bannerUrl && (
+            <img src={tournament.bannerUrl} alt="Preview" className="h-10 w-20 object-cover rounded border border-gray-200" />
+          )}
+        </div>
       </div>
 
       {/* Add Team Section */}
