@@ -50,11 +50,11 @@ export default function Home() {
               to={`/tournament/${t.id}`}
               className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-gray-100"
             >
-              <div className="h-32 bg-cricket-navy relative">
+              <div className="bg-cricket-navy relative flex justify-center">
                 {t.bannerUrl ? (
-                  <img src={t.bannerUrl} alt={t.name} className="w-full h-full object-contain opacity-90" />
+                  <img src={t.bannerUrl} alt={t.name} className="w-full h-auto max-h-[500px] object-contain" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center opacity-20">
+                  <div className="w-full h-40 flex items-center justify-center opacity-20">
                     <Trophy size={48} color="white" />
                   </div>
                 )}
