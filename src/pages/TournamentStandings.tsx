@@ -105,7 +105,7 @@ export default function TournamentStandings() {
               <thead>
                 <tr className="bg-gradient-to-r from-cricket-teal to-emerald-600 text-white border-b-2 border-emerald-700 shadow-sm">
                   <th className="py-3 px-3 sm:px-4 font-black text-sm rounded-tl-lg">#</th>
-                  <th className="py-3 px-3 sm:px-4 font-black text-sm w-full">TEAM</th>
+                  <th className="py-3 px-3 sm:px-4 font-black text-sm min-w-[120px]">TEAM</th>
                   <th className="py-3 px-3 sm:px-4 font-black text-sm text-center w-12 sm:w-16">P</th>
                   <th className="py-3 px-3 sm:px-4 font-black text-sm text-center w-12 sm:w-16">W</th>
                   <th className="py-3 px-3 sm:px-4 font-black text-sm text-center w-12 sm:w-16">L</th>
