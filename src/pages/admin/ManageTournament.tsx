@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../../firebase';
 import type { Tournament, Team, Match } from '../../types';
 
 export default function ManageTournament() {
@@ -156,6 +157,27 @@ export default function ManageTournament() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id) return;
+    
+    // UI feedback
+    const btn = document.getElementById('upload-btn');
+    if (btn) btn.innerText = 'Uploading...';
+
+    try {
+      const storageRef = ref(storage, `banners/${id}_${file.name}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      await handleUpdateTournament('bannerUrl', url);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload image. Make sure Firebase Storage is enabled in your Firebase Console!");
+    } finally {
+      if (btn) btn.innerText = 'Upload from PC';
+    }
+  };
+
   const handleRecalculateStandings = async () => {
     if (!id || !window.confirm("This will overwrite all team stats (P, W, L, D, PTS, NRR) based on the match scores below. Are you sure?")) return;
     
@@ -261,6 +283,11 @@ export default function ManageTournament() {
             onChange={(e) => handleUpdateTournament('bannerUrl', e.target.value)}
             className="flex-1 w-full px-4 py-2 border border-gray-300 rounded text-sm"
           />
+          <span className="text-gray-400 font-bold text-sm">OR</span>
+          <label className="bg-cricket-teal text-white px-4 py-2 rounded text-sm font-bold cursor-pointer hover:bg-emerald-600 transition shadow-sm whitespace-nowrap flex-shrink-0">
+            <span id="upload-btn">Upload from PC</span>
+            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+          </label>
           {tournament?.bannerUrl && (
             <img src={tournament.bannerUrl} alt="Preview" className="h-10 w-20 object-cover rounded border border-gray-200" />
           )}
