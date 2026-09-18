@@ -128,13 +128,14 @@ export default function TournamentStandings() {
                       // Top 2 Teams (Qualifiers)
                       rowBg = "bg-green-100/40 hover:bg-green-100/70 border-l-4 border-l-green-500";
                       badgeColor = "bg-green-600 text-white shadow-md ring-2 ring-green-300";
-                    } else if (index >= teams.length - 2 && teams.length > 4) {
-                      // Bottom 2 Teams (Eliminated)
+                    } else if (index === 2 || index === 3) {
+                      // 3rd and 4th Teams (Eliminator / Playoffs)
+                      rowBg = "bg-blue-50/60 hover:bg-blue-100/70 border-l-4 border-l-blue-400";
+                      badgeColor = "bg-blue-500 text-white shadow-md ring-2 ring-blue-200";
+                    } else {
+                      // 5th and below Teams (Eliminated)
                       rowBg = "bg-red-50/50 hover:bg-red-100/60 border-l-4 border-l-red-400";
                       badgeColor = "bg-red-500 text-white shadow-md ring-2 ring-red-200";
-                    } else {
-                      // Middle Teams
-                      rowBg += " border-l-4 border-l-transparent group-hover:border-l-gray-300";
                     }
 
                     return (
