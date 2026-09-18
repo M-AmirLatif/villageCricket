@@ -147,6 +147,8 @@ export default function ManageTournament() {
     }
   };
 
+  const [isUploading, setIsUploading] = useState(false);
+
   const handleUpdateTournament = async (field: string, value: string) => {
     if (!id) return;
     try {
@@ -161,9 +163,13 @@ export default function ManageTournament() {
     const file = e.target.files?.[0];
     if (!file || !id) return;
     
-    // UI feedback
-    const btn = document.getElementById('upload-btn');
-    if (btn) btn.innerText = 'Uploading...';
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image is too large! Please select an image under 5MB.");
+      return;
+    }
+
+    setIsUploading(true);
 
     try {
       const storageRef = ref(storage, `banners/${id}_${file.name}`);
@@ -172,9 +178,10 @@ export default function ManageTournament() {
       await handleUpdateTournament('bannerUrl', url);
     } catch (err) {
       console.error(err);
-      alert("Failed to upload image. Make sure Firebase Storage is enabled in your Firebase Console!");
+      alert("Upload failed! 1) Make sure Firebase Storage is enabled in your Console. 2) Make sure your Rules are set to Test Mode.");
     } finally {
-      if (btn) btn.innerText = 'Upload from PC';
+      setIsUploading(false);
+      e.target.value = ''; // Reset input
     }
   };
 
@@ -284,9 +291,9 @@ export default function ManageTournament() {
             className="flex-1 w-full px-4 py-2 border border-gray-300 rounded text-sm"
           />
           <span className="text-gray-400 font-bold text-sm">OR</span>
-          <label className="bg-cricket-teal text-white px-4 py-2 rounded text-sm font-bold cursor-pointer hover:bg-emerald-600 transition shadow-sm whitespace-nowrap flex-shrink-0">
-            <span id="upload-btn">Upload from PC</span>
-            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+          <label className={`text-white px-4 py-2 rounded text-sm font-bold cursor-pointer transition shadow-sm whitespace-nowrap flex-shrink-0 ${isUploading ? 'bg-gray-400 cursor-not-allowed' : 'bg-cricket-teal hover:bg-emerald-600'}`}>
+            <span>{isUploading ? 'Uploading...' : 'Upload from PC'}</span>
+            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={isUploading} />
           </label>
           {tournament?.bannerUrl && (
             <img src={tournament.bannerUrl} alt="Preview" className="h-10 w-20 object-cover rounded border border-gray-200" />
