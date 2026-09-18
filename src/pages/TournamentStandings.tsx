@@ -67,8 +67,8 @@ export default function TournamentStandings() {
       {/* Header Banner */}
       <div className="bg-cricket-navy text-white p-6 relative">
         {tournament.bannerUrl && (
-          <div className="absolute inset-0 opacity-20">
-            <img src={tournament.bannerUrl} alt="banner" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 opacity-30">
+            <img src={tournament.bannerUrl} alt="banner" className="w-full h-full object-contain" />
           </div>
         )}
         <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start justify-between">

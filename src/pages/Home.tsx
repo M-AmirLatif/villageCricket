@@ -52,7 +52,7 @@ export default function Home() {
             >
               <div className="h-32 bg-cricket-navy relative">
                 {t.bannerUrl ? (
-                  <img src={t.bannerUrl} alt={t.name} className="w-full h-full object-cover opacity-80" />
+                  <img src={t.bannerUrl} alt={t.name} className="w-full h-full object-contain opacity-90" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center opacity-20">
                     <Trophy size={48} color="white" />
