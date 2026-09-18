@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { doc, getDoc, collection, getDocs, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { Tournament, Team, Match } from '../types';
-import { Trophy, Calendar } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 
 export default function TournamentStandings() {
   const { id } = useParams<{ id: string }>();
