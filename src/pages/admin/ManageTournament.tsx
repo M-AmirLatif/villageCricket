@@ -114,7 +114,7 @@ export default function ManageTournament() {
     }
   };
 
-  const handleUpdateMatchField = async (matchId: string, field: string, value: string) => {
+  const handleUpdateMatchField = async (matchId: string, field: string, value: any) => {
     if (!id) return;
     try {
       await updateDoc(doc(db, `tournaments/${id}/matches`, matchId), { [field]: value });
@@ -295,8 +295,13 @@ export default function ManageTournament() {
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Match Date</label>
                     <input 
                       type="date" 
-                      value={new Date(m.date).toISOString().split('T')[0]} 
-                      onChange={(e) => handleUpdateMatchField(m.id, 'date', new Date(e.target.value).getTime().toString())}
+                      value={m.date && !isNaN(new Date(m.date).getTime()) ? new Date(m.date).toISOString().split('T')[0] : ''} 
+                      onChange={(e) => {
+                        const newTime = new Date(e.target.value).getTime();
+                        if (!isNaN(newTime)) {
+                          handleUpdateMatchField(m.id, 'date', newTime);
+                        }
+                      }}
                       className="p-2 border border-gray-300 rounded text-sm font-bold bg-white"
                     />
                   </div>

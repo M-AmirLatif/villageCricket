@@ -162,8 +162,9 @@ export default function TournamentStandings() {
                 if (!teamA || !teamB) return null;
 
                 const matchDate = new Date(match.date);
-                const dayOfWeek = matchDate.toLocaleDateString(undefined, { weekday: 'long' });
-                const fullDate = matchDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+                const isValidDate = !isNaN(matchDate.getTime());
+                const dayOfWeek = isValidDate ? matchDate.toLocaleDateString(undefined, { weekday: 'long' }) : 'Unknown';
+                const fullDate = isValidDate ? matchDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'Invalid Date';
 
                 return (
                   <div key={match.id} className="bg-white border-2 border-cricket-navy/10 rounded-xl overflow-hidden shadow-md transition hover:shadow-lg">
