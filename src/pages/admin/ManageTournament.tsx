@@ -1,35 +1,36 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { doc, getDoc, collection, getDocs, addDoc, updateDoc } from 'firebase/firestore';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import type { Tournament, Team, Match } from '../../types';
 
 export default function ManageTournament() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
-  
-  // Forms
+  const [loading, setLoading] = useState(true);
+
   const [newTeamName, setNewTeamName] = useState('');
   
   const [matchTeamA, setMatchTeamA] = useState('');
   const [matchTeamB, setMatchTeamB] = useState('');
   const [matchDate, setMatchDate] = useState('');
-  
-  const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     if (!id) return;
     try {
-      const tDoc = await getDoc(doc(db, 'tournaments', id));
-      if (tDoc.exists()) setTournament({ id: tDoc.id, ...tDoc.data() } as Tournament);
+      const docSnap = await getDoc(doc(db, 'tournaments', id));
+      if (docSnap.exists()) {
+        setTournament({ id: docSnap.id, ...docSnap.data() } as Tournament);
+      }
 
       const teamsSnap = await getDocs(collection(db, `tournaments/${id}/teams`));
       setTeams(teamsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Team)));
 
       const matchesSnap = await getDocs(collection(db, `tournaments/${id}/matches`));
-      setMatches(matchesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Match)).sort((a, b) => b.date - a.date));
+      setMatches(matchesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Match)).sort((a, b) => a.date - b.date));
     } catch (err) {
       console.error(err);
     } finally {
@@ -41,6 +42,7 @@ export default function ManageTournament() {
     fetchData();
   }, [id]);
 
+  // Teams
   const handleAddTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !newTeamName) return;
@@ -63,18 +65,30 @@ export default function ManageTournament() {
     }
   };
 
-  const handleUpdateTeamStats = async (teamId: string, field: keyof Team, value: number) => {
+  const handleUpdateTeamStats = async (teamId: string, field: keyof Team, value: number | string) => {
     if (!id) return;
     try {
       await updateDoc(doc(db, `tournaments/${id}/teams`, teamId), {
         [field]: value
       });
-      fetchData(); // reload
+      fetchData(); 
     } catch (err) {
       alert('Failed to update stats');
     }
   };
 
+  const handleDeleteTeam = async (teamId: string) => {
+    if (!id) return;
+    if (!window.confirm("Are you sure you want to delete this team?")) return;
+    try {
+      await deleteDoc(doc(db, `tournaments/${id}/teams`, teamId));
+      fetchData();
+    } catch (err) {
+      alert("Failed to delete team");
+    }
+  };
+
+  // Matches
   const handleAddMatch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !matchTeamA || !matchTeamB || !matchDate) return;
@@ -85,7 +99,11 @@ export default function ManageTournament() {
         teamBId: matchTeamB,
         date: new Date(matchDate).getTime(),
         result: 'upcoming',
-        venue: 'TBD'
+        venue: 'TBD',
+        teamAScore: '',
+        teamAOvers: '',
+        teamBScore: '',
+        teamBOvers: ''
       });
       setMatchTeamA('');
       setMatchTeamB('');
@@ -96,132 +114,260 @@ export default function ManageTournament() {
     }
   };
 
-  const handleUpdateMatchResult = async (matchId: string, result: string) => {
+  const handleUpdateMatchField = async (matchId: string, field: string, value: string) => {
     if (!id) return;
     try {
-      await updateDoc(doc(db, `tournaments/${id}/matches`, matchId), { result });
-      
-      // Auto-update standings based on result (simplified)
-      // Note: In a real robust app, recalculating all from scratch is safer, but here we do incremental if they just set the result once.
-      // For this simple version, we recommend the admin to manually adjust P, W, D, L, PTS if they make mistakes, 
-      // or we can run a full recount function.
-      alert('Match result updated. Please manually update points and NRR for the respective teams in the Teams section below.');
-      
+      await updateDoc(doc(db, `tournaments/${id}/matches`, matchId), { [field]: value });
       fetchData();
     } catch (err) {
       alert('Failed to update match');
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const handleDeleteMatch = async (matchId: string) => {
+    if (!id) return;
+    if (!window.confirm("Are you sure you want to delete this match?")) return;
+    try {
+      await deleteDoc(doc(db, `tournaments/${id}/matches`, matchId));
+      fetchData();
+    } catch (err) {
+      alert("Failed to delete match");
+    }
+  };
+
+  const handleDeleteTournament = async () => {
+    if (!id) return;
+    if (!window.confirm("WARNING: Are you absolutely sure you want to delete this entire tournament? This cannot be undone!")) return;
+    try {
+      await deleteDoc(doc(db, 'tournaments', id));
+      navigate('/admin');
+    } catch (err) {
+      alert("Failed to delete tournament");
+    }
+  };
+
+  if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
-    <div className="space-y-8 pb-20">
-      <div>
-        <Link to="/admin" className="text-cricket-teal hover:underline mb-4 inline-block">&larr; Back to Dashboard</Link>
-        <h1 className="text-2xl font-bold">Manage: {tournament?.name}</h1>
+    <div className="space-y-6 pb-20 max-w-6xl mx-auto px-2 sm:px-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div>
+          <Link to="/admin" className="text-cricket-teal hover:underline mb-1 inline-block text-sm font-bold">&larr; Dashboard</Link>
+          <h1 className="text-xl sm:text-2xl font-black text-cricket-navy uppercase tracking-tight">Manage: {tournament?.name}</h1>
+        </div>
+        <button onClick={handleDeleteTournament} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-bold shadow-sm transition">
+          Delete Tournament
+        </button>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h2 className="text-xl font-bold mb-4">Add Team</h2>
-        <form onSubmit={handleAddTeam} className="flex gap-4">
+      {/* Add Team Section */}
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border-t-4 border-t-cricket-teal border border-gray-200">
+        <h2 className="text-lg font-bold mb-4 text-cricket-navy uppercase">Add New Team</h2>
+        <form onSubmit={handleAddTeam} className="flex flex-col sm:flex-row gap-3">
           <input 
             type="text" 
-            placeholder="Team Name" 
+            placeholder="Enter Team Name..." 
             value={newTeamName}
             onChange={e => setNewTeamName(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded"
+            className="flex-1 px-4 py-3 border border-gray-300 rounded font-bold shadow-inner"
             required
           />
-          <button type="submit" className="bg-cricket-teal text-white px-4 py-2 rounded">Add</button>
+          <button type="submit" className="bg-cricket-navy text-white px-6 py-3 rounded font-bold hover:bg-cricket-teal transition shadow-sm">
+            Add Team
+          </button>
         </form>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
-        <h2 className="text-xl font-bold mb-4">Manage Teams (Stats & NRR)</h2>
-        <p className="text-sm text-gray-500 mb-4">Update points and NRR manually after matches.</p>
-        <table className="w-full text-left border-collapse min-w-[800px]">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-2">Team</th>
-              <th className="p-2 w-16">P</th>
-              <th className="p-2 w-16">W</th>
-              <th className="p-2 w-16">L</th>
-              <th className="p-2 w-16">D</th>
-              <th className="p-2 w-20">PTS</th>
-              <th className="p-2 w-32">NRR</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teams.map(team => (
-              <tr key={team.id} className="border-b border-gray-100">
-                <td className="p-2 font-bold">{team.teamName}</td>
-                {['matchesPlayed', 'wins', 'losses', 'draws', 'points'].map((field) => (
-                  <td key={field} className="p-2">
-                    <input 
-                      type="number" 
-                      value={team[field as keyof Team] as number}
-                      onChange={(e) => handleUpdateTeamStats(team.id, field as keyof Team, parseInt(e.target.value) || 0)}
-                      className="w-full p-1 border border-gray-300 rounded text-center"
-                    />
-                  </td>
+      {/* Manage Teams Section */}
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
+        <h2 className="text-lg font-bold mb-2 text-cricket-navy uppercase">Team Stats & Points Table</h2>
+        <p className="text-xs sm:text-sm text-gray-500 mb-4 bg-gray-50 p-2 rounded border border-gray-100">
+          💡 <strong>Tip:</strong> Edit points, W/L/D, and NRR directly in the boxes below. They auto-save instantly.
+        </p>
+        
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <div className="inline-block min-w-full align-middle px-4 sm:px-0">
+            <table className="w-full text-left border-collapse min-w-[700px]">
+              <thead>
+                <tr className="bg-gradient-to-r from-cricket-navy to-cricket-teal text-white">
+                  <th className="p-3 text-sm font-black rounded-tl-lg">Team Name</th>
+                  <th className="p-3 text-sm font-black text-center w-14">P</th>
+                  <th className="p-3 text-sm font-black text-center w-14">W</th>
+                  <th className="p-3 text-sm font-black text-center w-14">L</th>
+                  <th className="p-3 text-sm font-black text-center w-14">D</th>
+                  <th className="p-3 text-sm font-black text-center w-20 text-yellow-300">PTS</th>
+                  <th className="p-3 text-sm font-black text-center w-28">NRR</th>
+                  <th className="p-3 text-sm font-black text-center w-16 rounded-tr-lg">Action</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {teams.map(team => (
+                  <tr key={team.id} className="hover:bg-gray-50">
+                    <td className="p-2">
+                      <input 
+                        type="text"
+                        value={team.teamName}
+                        onChange={(e) => handleUpdateTeamStats(team.id, 'teamName', e.target.value)}
+                        className="w-full p-2 border-b border-transparent hover:border-gray-300 focus:border-cricket-teal focus:bg-white bg-transparent font-bold text-gray-800 transition-colors"
+                      />
+                    </td>
+                    {['matchesPlayed', 'wins', 'losses', 'draws', 'points'].map((field) => (
+                      <td key={field} className="p-2 text-center">
+                        <input 
+                          type="number" 
+                          value={team[field as keyof Team] as number}
+                          onChange={(e) => handleUpdateTeamStats(team.id, field as keyof Team, parseInt(e.target.value) || 0)}
+                          className="w-full p-2 border border-gray-200 rounded text-center focus:border-cricket-teal focus:ring-1 focus:ring-cricket-teal shadow-inner font-mono text-sm"
+                        />
+                      </td>
+                    ))}
+                    <td className="p-2 text-center">
+                      <input 
+                        type="number" 
+                        step="0.001"
+                        value={team.netRunRate}
+                        onChange={(e) => handleUpdateTeamStats(team.id, 'netRunRate', parseFloat(e.target.value) || 0)}
+                        className="w-full p-2 border border-gray-200 rounded text-center focus:border-cricket-teal focus:ring-1 focus:ring-cricket-teal shadow-inner font-mono text-sm"
+                      />
+                    </td>
+                    <td className="p-2 text-center">
+                      <button onClick={() => handleDeleteTeam(team.id)} className="text-red-500 hover:text-white hover:bg-red-500 p-2 rounded transition">
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
                 ))}
-                <td className="p-2">
-                  <input 
-                    type="number" 
-                    step="0.001"
-                    value={team.netRunRate}
-                    onChange={(e) => handleUpdateTeamStats(team.id, 'netRunRate', parseFloat(e.target.value) || 0)}
-                    className="w-full p-1 border border-gray-300 rounded text-center"
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                {teams.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="p-8 text-center text-gray-500">No teams added yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h2 className="text-xl font-bold mb-4">Add Match</h2>
-        <form onSubmit={handleAddMatch} className="flex gap-4 flex-wrap">
-          <select value={matchTeamA} onChange={e => setMatchTeamA(e.target.value)} required className="p-2 border rounded">
-            <option value="">Select Team A</option>
+      {/* Add Match Section */}
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200 border-t-4 border-t-orange-500">
+        <h2 className="text-lg font-bold mb-4 text-cricket-navy uppercase">Schedule a Match</h2>
+        <form onSubmit={handleAddMatch} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <select value={matchTeamA} onChange={e => setMatchTeamA(e.target.value)} required className="flex-1 p-3 border border-gray-300 rounded font-bold shadow-inner">
+            <option value="">Select Team A...</option>
             {teams.map(t => <option key={t.id} value={t.id}>{t.teamName}</option>)}
           </select>
-          <span className="py-2">vs</span>
-          <select value={matchTeamB} onChange={e => setMatchTeamB(e.target.value)} required className="p-2 border rounded">
-            <option value="">Select Team B</option>
+          
+          <div className="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-black text-xs mx-auto shadow-sm">VS</div>
+          
+          <select value={matchTeamB} onChange={e => setMatchTeamB(e.target.value)} required className="flex-1 p-3 border border-gray-300 rounded font-bold shadow-inner">
+            <option value="">Select Team B...</option>
             {teams.map(t => <option key={t.id} value={t.id}>{t.teamName}</option>)}
           </select>
-          <input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} required className="p-2 border rounded"/>
-          <button type="submit" className="bg-cricket-teal text-white px-4 py-2 rounded">Schedule Match</button>
+          
+          <input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} required className="flex-1 p-3 border border-gray-300 rounded shadow-inner"/>
+          
+          <button type="submit" className="bg-cricket-navy text-white px-6 py-3 rounded font-bold hover:bg-orange-600 transition shadow-sm w-full sm:w-auto">
+            Schedule
+          </button>
         </form>
+      </div>
 
-        <div className="mt-8 space-y-4">
-          <h3 className="font-bold">Match List</h3>
+      {/* Manage Matches Section */}
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
+        <h2 className="text-lg font-bold mb-4 text-cricket-navy uppercase">Manage Fixtures & Scores</h2>
+        <div className="space-y-4">
           {matches.map(m => {
-            const tA = teams.find(t => t.id === m.teamAId)?.teamName || 'Unknown';
-            const tB = teams.find(t => t.id === m.teamBId)?.teamName || 'Unknown';
+            const tA = teams.find(t => t.id === m.teamAId)?.teamName || 'Unknown Team';
+            const tB = teams.find(t => t.id === m.teamBId)?.teamName || 'Unknown Team';
+            
             return (
-              <div key={m.id} className="flex items-center gap-4 p-3 border border-gray-200 rounded">
-                <div className="w-32 text-sm text-gray-500">{new Date(m.date).toLocaleDateString()}</div>
-                <div className="flex-1 font-bold">{tA} vs {tB}</div>
-                <div>
-                  <select 
-                    value={m.result} 
-                    onChange={e => handleUpdateMatchResult(m.id, e.target.value)}
-                    className="p-1 text-sm border rounded bg-gray-50"
-                  >
-                    <option value="upcoming">Upcoming</option>
-                    <option value="teamA">{tA} Won</option>
-                    <option value="teamB">{tB} Won</option>
-                    <option value="tie">Tie</option>
-                    <option value="noResult">No Result</option>
-                  </select>
+              <div key={m.id} className="border-2 border-gray-100 rounded-lg p-4 sm:p-5 hover:border-cricket-teal transition bg-gray-50/50 relative">
+                
+                <button 
+                  onClick={() => handleDeleteMatch(m.id)}
+                  className="absolute top-2 right-2 text-xs text-red-500 hover:text-white hover:bg-red-500 px-2 py-1 rounded transition"
+                >
+                  Remove Match
+                </button>
+
+                <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 border-b border-gray-200 pb-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Match Date</label>
+                    <input 
+                      type="date" 
+                      value={new Date(m.date).toISOString().split('T')[0]} 
+                      onChange={(e) => handleUpdateMatchField(m.id, 'date', new Date(e.target.value).getTime().toString())}
+                      className="p-2 border border-gray-300 rounded text-sm font-bold bg-white"
+                    />
+                  </div>
+
+                  <div className="flex-1 max-w-xs">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Match Result</label>
+                    <select 
+                      value={m.result} 
+                      onChange={e => handleUpdateMatchField(m.id, 'result', e.target.value)}
+                      className={`w-full p-2 border rounded font-bold text-sm ${m.result !== 'upcoming' ? 'bg-green-50 border-green-300 text-green-800' : 'bg-white border-gray-300 text-gray-800'}`}
+                    >
+                      <option value="upcoming">Upcoming Match</option>
+                      <option value="teamA">{tA} Won</option>
+                      <option value="teamB">{tB} Won</option>
+                      <option value="tie">Match Tied</option>
+                      <option value="noResult">No Result / Abandoned</option>
+                    </select>
+                  </div>
                 </div>
+
+                {/* Score Editing */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Team A Score */}
+                  <div className="bg-white p-3 rounded border border-gray-200 flex flex-col sm:flex-row items-center gap-3">
+                    <div className="font-bold w-full sm:w-1/3 truncate text-center sm:text-right">{tA}</div>
+                    <div className="flex w-full sm:w-2/3 gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Score (e.g. 154/6)"
+                        value={m.teamAScore || ''}
+                        onChange={(e) => handleUpdateMatchField(m.id, 'teamAScore', e.target.value)}
+                        className="flex-1 p-2 border border-gray-300 rounded text-center font-mono text-sm"
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Overs (e.g. 20)"
+                        value={m.teamAOvers || ''}
+                        onChange={(e) => handleUpdateMatchField(m.id, 'teamAOvers', e.target.value)}
+                        className="w-20 p-2 border border-gray-300 rounded text-center font-mono text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Team B Score */}
+                  <div className="bg-white p-3 rounded border border-gray-200 flex flex-col sm:flex-row items-center gap-3">
+                    <div className="font-bold w-full sm:w-1/3 truncate text-center sm:text-right">{tB}</div>
+                    <div className="flex w-full sm:w-2/3 gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Score (e.g. 150/8)"
+                        value={m.teamBScore || ''}
+                        onChange={(e) => handleUpdateMatchField(m.id, 'teamBScore', e.target.value)}
+                        className="flex-1 p-2 border border-gray-300 rounded text-center font-mono text-sm"
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Overs (e.g. 20)"
+                        value={m.teamBOvers || ''}
+                        onChange={(e) => handleUpdateMatchField(m.id, 'teamBOvers', e.target.value)}
+                        className="w-20 p-2 border border-gray-300 rounded text-center font-mono text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
               </div>
             );
           })}
+          {matches.length === 0 && (
+            <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">No fixtures scheduled yet.</div>
+          )}
         </div>
       </div>
     </div>
