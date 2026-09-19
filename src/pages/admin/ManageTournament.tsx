@@ -67,16 +67,16 @@ export default function ManageTournament() {
     }
   };
 
-  const handleUpdateTeamStats = async (teamId: string, field: keyof Team, value: number | string) => {
+  const handleUpdateTeamStats = (teamId: string, field: keyof Team, value: number | string) => {
     if (!id) return;
-    try {
-      await updateDoc(doc(db, `tournaments/${id}/teams`, teamId), {
-        [field]: value
-      });
-      fetchData(); 
-    } catch (err) {
-      alert('Failed to update stats');
-    }
+    
+    // 1. Fast local state update for zero typing lag
+    setTeams(prev => prev.map(t => t.id === teamId ? { ...t, [field]: value } : t));
+    
+    // 2. Background DB sync (no fetch loop)
+    updateDoc(doc(db, `tournaments/${id}/teams`, teamId), {
+      [field]: value
+    }).catch(err => console.error('Failed to update stats', err));
   };
 
   const handleDeleteTeam = async (teamId: string) => {
@@ -116,14 +116,16 @@ export default function ManageTournament() {
     }
   };
 
-  const handleUpdateMatchField = async (matchId: string, field: string, value: any) => {
+  const handleUpdateMatchField = (matchId: string, field: string, value: any) => {
     if (!id) return;
-    try {
-      await updateDoc(doc(db, `tournaments/${id}/matches`, matchId), { [field]: value });
-      fetchData();
-    } catch (err) {
-      alert('Failed to update match');
-    }
+    
+    // 1. Fast local state update for zero typing lag
+    setMatches(prev => prev.map(m => m.id === matchId ? { ...m, [field]: value } : m));
+    
+    // 2. Background DB sync (no fetch loop)
+    updateDoc(doc(db, `tournaments/${id}/matches`, matchId), { 
+      [field]: value 
+    }).catch(err => console.error('Failed to update match', err));
   };
 
   const handleDeleteMatch = async (matchId: string) => {
