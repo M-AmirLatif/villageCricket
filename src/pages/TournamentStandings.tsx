@@ -206,19 +206,21 @@ export default function TournamentStandings() {
                     <div className="p-4 sm:p-6">
                       <div className="flex items-center justify-between gap-2 sm:gap-4">
                         {/* Team A */}
-                        <div className="flex-1 text-right flex flex-col items-end">
-                          <span className="font-bold text-base sm:text-xl text-gray-800 leading-tight mb-2">{teamA.teamName}</span>
+                        <div className="flex-1 flex flex-col items-end">
+                          <span className="font-bold text-right text-base sm:text-xl text-gray-800 leading-tight mb-2">{teamA.teamName}</span>
                           {match.result !== 'upcoming' && (
-                            <div className="flex flex-col items-end text-xs sm:text-sm gap-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs">Runs:</span>
-                                <span className="text-cricket-teal font-mono font-bold text-sm sm:text-base">{match.teamAScore || '-'}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs">Overs:</span>
-                                <span className="text-cricket-teal font-mono font-bold text-sm sm:text-base">{match.teamAOvers || '-'}</span>
-                              </div>
-                            </div>
+                            <table className="mt-1">
+                              <tbody>
+                                <tr>
+                                  <td className="text-right text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs pr-2">Runs:</td>
+                                  <td className="text-left text-cricket-teal font-mono font-bold text-sm sm:text-base">{match.teamAScore || '-'}</td>
+                                </tr>
+                                <tr>
+                                  <td className="text-right text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs pr-2">Overs:</td>
+                                  <td className="text-left text-cricket-teal font-mono font-bold text-sm sm:text-base">{match.teamAOvers || '-'}</td>
+                                </tr>
+                              </tbody>
+                            </table>
                           )}
                         </div>
                         
@@ -228,19 +230,21 @@ export default function TournamentStandings() {
                         </div>
                         
                         {/* Team B */}
-                        <div className="flex-1 text-left flex flex-col items-start">
-                          <span className="font-bold text-base sm:text-xl text-gray-800 leading-tight mb-2">{teamB.teamName}</span>
+                        <div className="flex-1 flex flex-col items-start">
+                          <span className="font-bold text-left text-base sm:text-xl text-gray-800 leading-tight mb-2">{teamB.teamName}</span>
                           {match.result !== 'upcoming' && (
-                            <div className="flex flex-col items-start text-xs sm:text-sm gap-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs">Runs:</span>
-                                <span className="text-cricket-teal font-mono font-bold text-sm sm:text-base">{match.teamBScore || '-'}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs">Overs:</span>
-                                <span className="text-cricket-teal font-mono font-bold text-sm sm:text-base">{match.teamBOvers || '-'}</span>
-                              </div>
-                            </div>
+                            <table className="mt-1">
+                              <tbody>
+                                <tr>
+                                  <td className="text-left text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs pr-2">Runs:</td>
+                                  <td className="text-left text-cricket-teal font-mono font-bold text-sm sm:text-base">{match.teamBScore || '-'}</td>
+                                </tr>
+                                <tr>
+                                  <td className="text-left text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs pr-2">Overs:</td>
+                                  <td className="text-left text-cricket-teal font-mono font-bold text-sm sm:text-base">{match.teamBOvers || '-'}</td>
+                                </tr>
+                              </tbody>
+                            </table>
                           )}
                         </div>
                       </div>
