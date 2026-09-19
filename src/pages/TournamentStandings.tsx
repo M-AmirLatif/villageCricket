@@ -212,11 +212,11 @@ export default function TournamentStandings() {
                             <table className="mt-1">
                               <tbody>
                                 <tr>
-                                  <td className="text-right text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs pr-2">Runs:</td>
+                                  <td className="text-left text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs pr-2">Runs:</td>
                                   <td className="text-left text-cricket-teal font-mono font-bold text-sm sm:text-base">{match.teamAScore || '-'}</td>
                                 </tr>
                                 <tr>
-                                  <td className="text-right text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs pr-2">Overs:</td>
+                                  <td className="text-left text-gray-400 uppercase tracking-wider font-bold text-[10px] sm:text-xs pr-2">Overs:</td>
                                   <td className="text-left text-cricket-teal font-mono font-bold text-sm sm:text-base">{match.teamAOvers || '-'}</td>
                                 </tr>
                               </tbody>
