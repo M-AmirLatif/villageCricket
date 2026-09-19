@@ -31,6 +31,7 @@ export interface Match {
   teamBScore?: string;
   teamBOvers?: string;
   result: 'teamA' | 'teamB' | 'tie' | 'noResult' | 'upcoming';
+  resultString?: string; // e.g. "won by 5 wickets"
   date: number;
   venue: string;
 }

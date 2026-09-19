@@ -398,12 +398,12 @@ export default function ManageTournament() {
               <thead>
                 <tr className="bg-gradient-to-r from-cricket-navy to-cricket-teal text-white">
                   <th className="p-3 text-sm font-black rounded-tl-lg">Team Name</th>
-                  <th className="p-3 text-sm font-black text-center w-14">P</th>
-                  <th className="p-3 text-sm font-black text-center w-14">W</th>
-                  <th className="p-3 text-sm font-black text-center w-14">L</th>
-                  <th className="p-3 text-sm font-black text-center w-14">D</th>
-                  <th className="p-3 text-sm font-black text-center w-20 text-yellow-300">PTS</th>
-                  <th className="p-3 text-sm font-black text-center w-28">NRR</th>
+                  <th className="p-3 text-sm font-black text-center w-16 sm:w-20">P</th>
+                  <th className="p-3 text-sm font-black text-center w-16 sm:w-20">W</th>
+                  <th className="p-3 text-sm font-black text-center w-16 sm:w-20">L</th>
+                  <th className="p-3 text-sm font-black text-center w-16 sm:w-20">D</th>
+                  <th className="p-3 text-sm font-black text-center w-20 sm:w-24 text-yellow-300">PTS</th>
+                  <th className="p-3 text-sm font-black text-center w-24 sm:w-32">NRR</th>
                   <th className="p-3 text-sm font-black text-center w-16 rounded-tr-lg">Action</th>
                 </tr>
               </thead>
@@ -415,26 +415,26 @@ export default function ManageTournament() {
                         type="text"
                         value={team.teamName}
                         onChange={(e) => handleUpdateTeamStats(team.id, 'teamName', e.target.value)}
-                        className="w-full p-2 border-b border-transparent hover:border-gray-300 focus:border-cricket-teal focus:bg-white bg-transparent font-bold text-gray-800 transition-colors"
+                        className="w-full min-w-[120px] p-2 border-b border-transparent hover:border-gray-300 focus:border-cricket-teal focus:bg-white bg-transparent font-bold text-gray-800 transition-colors"
                       />
                     </td>
                     {['matchesPlayed', 'wins', 'losses', 'draws', 'points'].map((field) => (
-                      <td key={field} className="p-2 text-center">
+                      <td key={field} className="p-1 sm:p-2 text-center">
                         <input 
                           type="number" 
                           value={team[field as keyof Team] as number}
                           onChange={(e) => handleUpdateTeamStats(team.id, field as keyof Team, parseInt(e.target.value) || 0)}
-                          className="w-full p-2 border border-gray-200 rounded text-center focus:border-cricket-teal focus:ring-1 focus:ring-cricket-teal shadow-inner font-mono text-sm"
+                          className="w-full min-w-[40px] px-1 py-2 sm:p-2 border border-gray-200 rounded text-center focus:border-cricket-teal focus:ring-1 focus:ring-cricket-teal shadow-inner font-mono text-sm"
                         />
                       </td>
                     ))}
-                    <td className="p-2 text-center">
+                    <td className="p-1 sm:p-2 text-center">
                       <input 
                         type="number" 
-                        step="0.001"
+                        step="0.01"
                         value={team.netRunRate}
                         onChange={(e) => handleUpdateTeamStats(team.id, 'netRunRate', parseFloat(e.target.value) || 0)}
-                        className="w-full p-2 border border-gray-200 rounded text-center focus:border-cricket-teal focus:ring-1 focus:ring-cricket-teal shadow-inner font-mono text-sm"
+                        className="w-full min-w-[60px] px-1 py-2 sm:p-2 border border-gray-200 rounded text-center focus:border-cricket-teal focus:ring-1 focus:ring-cricket-teal shadow-inner font-mono text-sm"
                       />
                     </td>
                     <td className="p-2 text-center">
@@ -538,49 +538,62 @@ export default function ManageTournament() {
                 </div>
 
                 {/* Score Editing */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   {/* Team A Score */}
-                  <div className="bg-white p-3 rounded border border-gray-200 flex flex-col sm:flex-row items-center gap-3">
+                  <div className="bg-white p-3 rounded border border-gray-200 flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
                     <div className="font-bold w-full sm:w-1/3 truncate text-center sm:text-right">{tA}</div>
                     <div className="flex w-full sm:w-2/3 gap-2">
                       <input 
                         type="text" 
-                        placeholder="Score (e.g. 154/6)"
+                        placeholder="Score (154/6)"
                         value={m.teamAScore || ''}
                         onChange={(e) => handleUpdateMatchField(m.id, 'teamAScore', e.target.value)}
-                        className="flex-1 p-2 border border-gray-300 rounded text-center font-mono text-sm"
+                        className="flex-1 w-0 p-2 border border-gray-300 rounded text-center font-mono text-xs sm:text-sm"
                       />
                       <input 
                         type="text" 
-                        placeholder="Overs (e.g. 20)"
+                        placeholder="Overs"
                         value={m.teamAOvers || ''}
                         onChange={(e) => handleUpdateMatchField(m.id, 'teamAOvers', e.target.value)}
-                        className="w-20 p-2 border border-gray-300 rounded text-center font-mono text-sm"
+                        className="w-16 flex-none p-2 border border-gray-300 rounded text-center font-mono text-xs sm:text-sm"
                       />
                     </div>
                   </div>
 
                   {/* Team B Score */}
-                  <div className="bg-white p-3 rounded border border-gray-200 flex flex-col sm:flex-row items-center gap-3">
+                  <div className="bg-white p-3 rounded border border-gray-200 flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
                     <div className="font-bold w-full sm:w-1/3 truncate text-center sm:text-right">{tB}</div>
                     <div className="flex w-full sm:w-2/3 gap-2">
                       <input 
                         type="text" 
-                        placeholder="Score (e.g. 150/8)"
+                        placeholder="Score (150/8)"
                         value={m.teamBScore || ''}
                         onChange={(e) => handleUpdateMatchField(m.id, 'teamBScore', e.target.value)}
-                        className="flex-1 p-2 border border-gray-300 rounded text-center font-mono text-sm"
+                        className="flex-1 w-0 p-2 border border-gray-300 rounded text-center font-mono text-xs sm:text-sm"
                       />
                       <input 
                         type="text" 
-                        placeholder="Overs (e.g. 20)"
+                        placeholder="Overs"
                         value={m.teamBOvers || ''}
                         onChange={(e) => handleUpdateMatchField(m.id, 'teamBOvers', e.target.value)}
-                        className="w-20 p-2 border border-gray-300 rounded text-center font-mono text-sm"
+                        className="w-16 flex-none p-2 border border-gray-300 rounded text-center font-mono text-xs sm:text-sm"
                       />
                     </div>
                   </div>
                 </div>
+
+                {m.result !== 'upcoming' && m.result !== 'noResult' && (
+                  <div className="mt-3 bg-white p-3 rounded border border-gray-200">
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Result Details (Optional)</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Tolu Club won by 6 wickets"
+                      value={m.resultString || ''}
+                      onChange={(e) => handleUpdateMatchField(m.id, 'resultString', e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded text-sm"
+                    />
+                  </div>
+                )}
 
               </div>
             );

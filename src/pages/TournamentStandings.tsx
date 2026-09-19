@@ -234,11 +234,13 @@ export default function TournamentStandings() {
                     
                     {/* Result Footer */}
                     {match.result !== 'upcoming' && (
-                      <div className="bg-gray-50 py-3 text-center border-t border-gray-100">
-                        <span className="inline-block px-4 py-1 rounded-full bg-green-100 text-green-800 font-bold text-sm">
-                          {match.result === 'teamA' ? `${teamA.teamName} won` : 
-                           match.result === 'teamB' ? `${teamB.teamName} won` : 
-                           match.result === 'tie' ? 'Match Tied' : 'No Result'}
+                      <div className="bg-gray-50 py-3 text-center border-t border-gray-100 px-4">
+                        <span className="inline-block px-4 py-1.5 rounded-full bg-green-100 text-green-800 font-bold text-sm shadow-sm">
+                          {match.resultString ? match.resultString : (
+                            match.result === 'teamA' ? `${teamA.teamName} won` : 
+                            match.result === 'teamB' ? `${teamB.teamName} won` : 
+                            match.result === 'tie' ? 'Match Tied' : 'No Result'
+                          )}
                         </span>
                       </div>
                     )}
